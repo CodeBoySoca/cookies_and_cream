@@ -1,4 +1,9 @@
 require 'sinatra'
+require 'sinatra/activerecord'
+require 'dotenv'
+
+Dotenv.load
+Dir[File.join(File.dirname(__FILE__), 'models', '*.rb')].each { |model| require model}
 
 
 class CookiesCreamApp < Sinatra::Base
