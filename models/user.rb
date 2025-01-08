@@ -1,32 +1,28 @@
 require 'brcypt'
 
 class User < ActiveRecord::Base
-  def create_user_account()
+
+  def create_user_account(user)
   end
 
-  def check_for_existence()
+  def check_for_existence(email)
   end
 
-  def retrieve_user_account()
+  def check_for_user_session()
+     #run this before any of the methods for request
+     #user to be logged in
   end
 
-  def edit_user_account()
+  def retrieve_user_account(email)
   end
 
-  def deactivate_user_account()
+  def edit_user_account(email)
   end
 
-  def check_password()
-  end
-
-  def hash_password()
-  end
-
-  def signin_user()
+  def deactivate_user_account(email)
   end
 
   def signout()
   end
-
 
 end
