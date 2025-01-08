@@ -1,4 +1,4 @@
-require 'brcypt'
+require 'bcrypt'
 
 class User < ActiveRecord::Base
 
