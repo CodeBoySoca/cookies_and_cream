@@ -12,16 +12,24 @@ class CookiesCreamApp < Sinatra::Base
 
   end
 
-  get '/register' do
-
+  get '/signin' do
+    erb :signin
   end
 
-  get '/login' do
-
+  get '/email/sent' do
+    #page to display to the user to tell them to check their e-mail
+    erb :email_sent
   end
 
-  get '/logout' do
+  post '/send/email' do
+    #send email with magic link
+  end
 
+  get '/verify/token' do
+    #verify the users token
+  end
+
+  get '/signout' do
   end
 
   get '/shops' do
