@@ -16,7 +16,7 @@ class CookiesCreamApp < Sinatra::Base
     erb :signin
   end
 
-  get '/email/sent' do
+  post '/email/sent' do
     #page to display to the user to tell them to check their e-mail
     erb :email_sent
   end
