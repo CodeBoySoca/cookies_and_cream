@@ -31,6 +31,7 @@ GEM
     drb (2.2.1)
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
+    json (2.9.1)
     jwt (2.10.1)
       base64
     logger (1.6.4)
@@ -98,6 +99,7 @@ DEPENDENCIES
   activerecord
   bcrypt
   dotenv
+  json
   jwt
   pg
   pony
