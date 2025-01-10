@@ -215,6 +215,10 @@ class CookiesCreamApp < Sinatra::Base
   post '/shop/add' do
   end
 
+  get '/shop/menu' do
+    erb :'shop/menu'
+  end
+
   get '/shop/:shop_name' do
   end
 
