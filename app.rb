@@ -101,6 +101,10 @@ class CookiesCreamApp < Sinatra::Base
     erb :'registration/location'
   end
 
+  post '/location' do
+     #redirect to shops after adding everything to db
+  end
+
   get '/shops' do
     erb :'user/shops'
   end
@@ -125,7 +129,7 @@ class CookiesCreamApp < Sinatra::Base
   end
 
   get '/boards' do
-
+    erb :'user/boards'
   end
 
   post '/create/board' do
@@ -201,20 +205,14 @@ class CookiesCreamApp < Sinatra::Base
   end
 
   get '/shop/owner/profile' do
-
+    #this is for the photo of the owner
   end
 
   get '/shop/add' do
-
+    erb :'shop/shop'
   end
 
   post '/shop/add' do
-  end
-
-  get '/shop/add/banner' do
-  end
-
-  patch '/shop/add/banner' do
   end
 
   get '/shop/:shop_name' do
