@@ -1,0 +1,11 @@
+<main>
+  <div>
+    <form method="POST" action="/email/magic-link">
+      <h2>Sign up</h2>
+      <%= csrf_tag %>
+      <input type="text" name="name" title="Names can only contain letters and cannot exceed 35 characters" pattern="[A-Za-z]{,3}" maxlength="35" placeholder="Name" required>
+      <input type="text" name="username" title="Usernames can only contain letters, numbers, underscores, dashes and cannot exceed 15 characters long" pattern="[a-zA-Z0-9_-]" maxlength="15" placeholder="Username" required>
+      <input type="submit" value="next">
+    </form>
+  </div>
+</main>

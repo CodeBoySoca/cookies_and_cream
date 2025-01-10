@@ -3,14 +3,31 @@ require 'sinatra/activerecord'
 require 'dotenv'
 require 'pony'
 require 'erb'
-require 'json'
+require 'rack/protection'
+require 'securerandom'
+
+
+
 
 Dotenv.load
 Dir[File.join(File.dirname(__FILE__), 'models', '*.rb')].each { |model| require model}
 
-enable :sessions
+
 
 class CookiesCreamApp < Sinatra::Base
+
+  configure do
+    enable :sessions
+    set :session_secret, ENV.fetch('SESSION_SECRET') { SecureRandom.hex(64) }
+    use Rack::Protection
+    use Rack::Protection::AuthenticityToken
+  end
+
+  helpers do
+    def csrf_tag
+       "<input type='hidden' name='authenticity_token' value='#{env['rack.session'][:csrf]}'>"
+    end
+  end
 
   #global
   get '/' do
@@ -37,16 +54,16 @@ class CookiesCreamApp < Sinatra::Base
     erb :signup
   end
 
-  get '/email/magic-link' do
+  post '/email/magic-link' do
     erb :signin
   end
 
-  get '/send/magic-link' do
+  post '/send/magic-link' do
     #page to display to the user to tell them to check their e-mail
     #send email with magic link
     email = Email.new
     token = email.generate_token(params[:email])
-    magic_link = "http://localhost:4567/verify?token=#{token}"
+    magic_link = "http://localhost:4567/verify/account/?token=#{token}"
     email.send_magic_link({
         :to =>  ENV['EMAIL_RECIPIENT'],
         :via => :smtp,
@@ -64,7 +81,7 @@ class CookiesCreamApp < Sinatra::Base
     erb :email_sent
   end
 
-  get '/verify/account' do
+  get '/verify/account/' do
     #verify the users token
     email = Email.new
     decoded_token = email.verify_token(params[:token])
@@ -139,7 +156,6 @@ class CookiesCreamApp < Sinatra::Base
  post '/board/:letters/posts/:post' do
 
  end
-
 
   #shops
   get '/shop/signup' do
