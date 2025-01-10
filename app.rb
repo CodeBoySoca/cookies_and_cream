@@ -82,7 +82,7 @@ class CookiesCreamApp < Sinatra::Base
     decoded_token = email.verify_token(params[:token])
     if decoded_token
        #save to database and create a session
-       redirect :shops
+       redirect :'registration/profile_image'
     else
       'Invalid or expired token'
     end
@@ -90,26 +90,27 @@ class CookiesCreamApp < Sinatra::Base
 
 
   get '/profile-image' do
-    erb :profile_image
-  end
-
-  get '/location' do
-
+    erb :'registration/profile_image'
   end
 
   get '/dessert/favs' do
+    erb :'registration/dessert_preference'
+  end
+
+  get '/location' do
+    erb :'registration/location'
   end
 
   get '/shops' do
-    erb :shops
+    erb :'user/shops'
   end
 
   get '/dessert/:name' do
-
+    erb :'user/dessert'
   end
 
   get '/messages/' do
-
+    erb :'user/messages'
   end
 
   post '/messages' do
@@ -117,7 +118,7 @@ class CookiesCreamApp < Sinatra::Base
   end
 
   get '/favorites' do
-
+    erb :'user/favorites'
   end
 
   post '/favorites' do
