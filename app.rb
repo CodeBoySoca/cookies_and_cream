@@ -10,7 +10,6 @@ Dotenv.load
 Dir[File.join(File.dirname(__FILE__), 'models', '*.rb')].each { |model| require model}
 
 class CookiesCreamApp < Sinatra::Base
-
   configure do
     enable :sessions
     set :session_secret, ENV.fetch('SESSION_SECRET') { SecureRandom.hex(64) }
@@ -24,9 +23,18 @@ class CookiesCreamApp < Sinatra::Base
     end
   end
 
+  helpers do
+    def toast(message)
+      "<span class='error'>#{message}</span>"
+    end
+  end
+
   #global
   get '/' do
     #a landing page?
+    user = User.new
+    result = user.check_for_existence('betty@t.net')
+    puts result
   end
 
   get '/signout' do
@@ -56,25 +64,31 @@ class CookiesCreamApp < Sinatra::Base
   post '/send/magic-link' do
     #page to display to the user to tell them to check their e-mail
     #send email with magic link
-    email = Email.new
-    token = email.generate_token(params[:email])
-    magic_link = "http://localhost:4567/verify/account/?token=#{token}"
-    email.send_magic_link({
-        :to =>  ENV['EMAIL_RECIPIENT'],
-        :via => :smtp,
-        :via_options => {
-        :address =>  ENV['EMAIL_SERVER'],
-          :port =>  ENV['EMAIL_PORT'],
-          :enable_starttls_auto =>  true,
-          :user_name =>  ENV['EMAIL_SENDER'],
-          :password =>  ENV['EMAIL_PASSWORD']
-        },
-        :subject => 'Cookies and Cream - Magic Link',
-        :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({:name => 'Joe', :magic_link => magic_link}),
-        :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
-      })
-    erb :'authentication/email_sent'
-  end
+    user = User.new
+    email = user.check_for_existence(params[:email])
+    if email == 404
+        email = Email.new
+        token = email.generate_token(params[:email])
+        magic_link = "http://localhost:4567/verify/account/?token=#{token}"
+        email.send_magic_link({
+            :to =>  ENV['EMAIL_RECIPIENT'],
+            :via => :smtp,
+            :via_options => {
+              :address =>  ENV['EMAIL_SERVER'],
+              :port =>  ENV['EMAIL_PORT'],
+              :enable_starttls_auto =>  true,
+              :user_name =>  ENV['EMAIL_SENDER'],
+              :password =>  ENV['EMAIL_PASSWORD']
+            },
+            :subject => 'Cookies and Cream - Magic Link',
+            :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({:name => user.name, :magic_link => magic_link}),
+            :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
+          })
+        erb :'authentication/email_sent'
+     else
+       erb :'authentication/signin', locals: {:toast => toast('User already has an account')}
+     end
+    end
 
   get '/verify/account/' do
     #verify the users token
@@ -82,7 +96,7 @@ class CookiesCreamApp < Sinatra::Base
     decoded_token = email.verify_token(params[:token])
     if decoded_token
        #save to database and create a session
-       redirect :'registration/profile_image'
+       redirect :'profile-image'
     else
       'Invalid or expired token'
     end
@@ -169,28 +183,35 @@ class CookiesCreamApp < Sinatra::Base
     erb :'authentication/signin'
   end
 
-  get '/shop/send/magic-link' do
+  post '/shop/send/magic-link' do
     #page to display to the user to tell them to check their e-mail
     #send email with magic link
-    email = Email.new
-    token = email.generate_token(params[:email])
-    magic_link = "http://localhost:4567/verify?token=#{token}"
-    email.send_magic_link({
-        :to =>  ENV['EMAIL_RECIPIENT'],
-        :via => :smtp,
-        :via_options => {
-        :address =>  ENV['EMAIL_SERVER'],
-          :port =>  ENV['EMAIL_PORT'],
-          :enable_starttls_auto =>  true,
-          :user_name =>  ENV['EMAIL_SENDER'],
-          :password =>  ENV['EMAIL_PASSWORD']
-        },
-        :subject => 'Cookies and Cream - Magic Link',
-        :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({:name => 'Joe', :magic_link => magic_link}),
-        :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
-      })
-    erb :'authentication/email_sent'
-  end
+    user = User.new
+    email = user.check_for_existence(params[:email])
+    if email == 404
+        email = Email.new
+        token = email.generate_token(params[:email])
+        magic_link = "http://localhost:4567/verify/account/?token=#{token}"
+        email.send_magic_link({
+            :to =>  ENV['EMAIL_RECIPIENT'],
+            :via => :smtp,
+            :via_options => {
+              :address =>  ENV['EMAIL_SERVER'],
+              :port =>  ENV['EMAIL_PORT'],
+              :enable_starttls_auto =>  true,
+              :user_name =>  ENV['EMAIL_SENDER'],
+              :password =>  ENV['EMAIL_PASSWORD']
+            },
+            :subject => 'Cookies and Cream - Magic Link',
+            :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({:name => user.name, :magic_link => magic_link}),
+            :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
+          })
+        erb :'authentication/email_sent'
+     else
+       erb :'authentication/signin', locals: {:toast => toast('User already has an account')}
+     end
+    end
+
 
   get '/shop/verify/account' do
     #verify the users token

@@ -6,6 +6,12 @@ class User < ActiveRecord::Base
   end
 
   def check_for_existence(email)
+    result = User.find_by(email: email)
+    if result
+       return result
+    else
+       return 404
+    end
   end
 
   def check_for_user_session()

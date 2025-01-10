@@ -7,5 +7,10 @@
         <input type="email" name="email" title="Please use valid email address" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" placeholder="E-mail" required>
         <input type="submit" value="Send magic link">
     </form>
+    <% if locals[:toast] %>
+      <div id="toast">
+        <%= toast %>
+      </div>
+    <% end %>
   </div>
 </main>
