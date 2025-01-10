@@ -33,7 +33,7 @@ class CookiesCreamApp < Sinatra::Base
   end
 
   get '/account/type' do
-    erb :account_type
+    erb :'registration/account_type'
   end
 
   patch '/settings' do
@@ -46,11 +46,11 @@ class CookiesCreamApp < Sinatra::Base
 
   #users
   get '/signup' do
-    erb :signup
+    erb :'registration/signup'
   end
 
   post '/email/magic-link' do
-    erb :signin
+    erb :'authentication/signin'
   end
 
   post '/send/magic-link' do
@@ -70,10 +70,10 @@ class CookiesCreamApp < Sinatra::Base
           :password =>  ENV['EMAIL_PASSWORD']
         },
         :subject => 'Cookies and Cream - Magic Link',
-        :html_body => ERB.new(File.read('views/magic_link.erb')).result_with_hash({:name => 'Joe', :magic_link => magic_link}),
+        :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({:name => 'Joe', :magic_link => magic_link}),
         :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
       })
-    erb :email_sent
+    erb :'authentication/email_sent'
   end
 
   get '/verify/account/' do
@@ -157,11 +157,11 @@ class CookiesCreamApp < Sinatra::Base
 
   #shops
   get '/shop/signup' do
-     erb :signup
+     erb :'registration/signup'
   end
 
   get '/shop/email/magic-link' do
-    erb :signin
+    erb :'authentication/signin'
   end
 
   get '/shop/send/magic-link' do
@@ -181,10 +181,10 @@ class CookiesCreamApp < Sinatra::Base
           :password =>  ENV['EMAIL_PASSWORD']
         },
         :subject => 'Cookies and Cream - Magic Link',
-        :html_body => ERB.new(File.read('views/magic_link.erb')).result_with_hash({:name => 'Joe', :magic_link => magic_link}),
+        :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({:name => 'Joe', :magic_link => magic_link}),
         :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
       })
-    erb :email_sent
+    erb :'authentication/email_sent'
   end
 
   get '/shop/verify/account' do
