@@ -6,13 +6,8 @@ require 'erb'
 require 'rack/protection'
 require 'securerandom'
 
-
-
-
 Dotenv.load
 Dir[File.join(File.dirname(__FILE__), 'models', '*.rb')].each { |model| require model}
-
-
 
 class CookiesCreamApp < Sinatra::Base
 
@@ -25,7 +20,7 @@ class CookiesCreamApp < Sinatra::Base
 
   helpers do
     def csrf_tag
-       "<input type='hidden' name='authenticity_token' value='#{env['rack.session'][:csrf]}'>"
+      "<input type='hidden' name='authenticity_token' value='#{env['rack.session'][:csrf]}'>"
     end
   end
 
@@ -93,10 +88,13 @@ class CookiesCreamApp < Sinatra::Base
     end
   end
 
-  get '/location' do
-  end
 
   get '/profile-image' do
+    erb :profile_image
+  end
+
+  get '/location' do
+
   end
 
   get '/dessert/favs' do
