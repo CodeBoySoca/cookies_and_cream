@@ -1,8 +1,9 @@
+
 <main>
  <div>
     <form method="POST">
      <h2>Add your location</h2>
-     <p>This will help us find shops near to you</p>
+    <% if request.path_info ==  '/location' %> <p>This will help us find shops near to you</p><% end %>
      <input type="text" name="city" placeholder="City" pattern="[A-Za-z]" required>
      <br>
      <select name="countries">

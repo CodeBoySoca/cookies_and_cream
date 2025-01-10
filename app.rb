@@ -208,6 +208,9 @@ class CookiesCreamApp < Sinatra::Base
     #this is for the photo of the owner
   end
 
+  get '/shop/owner/location' do
+  end
+
   get '/shop/add' do
     erb :'shop/shop'
   end
