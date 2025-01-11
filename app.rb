@@ -5,11 +5,15 @@ require 'pony'
 require 'erb'
 require 'rack/protection'
 require 'securerandom'
+require 'redis'
+
 
 Dotenv.load
 Dir[File.join(File.dirname(__FILE__), 'models', '*.rb')].each { |model| require model}
 
 class CookiesCreamApp < Sinatra::Base
+  redis = Redis.new(url: ENV['REDIS_URL'])
+
   configure do
     enable :sessions
     set :session_secret, ENV.fetch('SESSION_SECRET') { SecureRandom.hex(64) }
@@ -32,9 +36,6 @@ class CookiesCreamApp < Sinatra::Base
   #global
   get '/' do
     #a landing page?
-    user = User.new
-    result = user.check_for_existence('betty@t.net')
-    puts result
   end
 
   get '/signout' do
@@ -58,6 +59,10 @@ class CookiesCreamApp < Sinatra::Base
   end
 
   post '/email/magic-link' do
+    #add the username and name to redis
+    session[:username] = params[:username]
+    account = Account.new
+    account.cache_account(redis, session.id, {:name => params[:name], :username => params[:username]})
     erb :'authentication/signin'
   end
 
@@ -65,8 +70,10 @@ class CookiesCreamApp < Sinatra::Base
     #page to display to the user to tell them to check their e-mail
     #send email with magic link
     user = User.new
-    email = user.check_for_existence(params[:email])
-    if email == 404
+    account_status = user.check_for_existence(params[:email])
+    account = Account.new
+    user_data = account.get_cached_data(redis, session.id)
+    if account_status == 404
         email = Email.new
         token = email.generate_token(params[:email])
         magic_link = "http://localhost:4567/verify/account/?token=#{token}"
@@ -81,7 +88,10 @@ class CookiesCreamApp < Sinatra::Base
               :password =>  ENV['EMAIL_PASSWORD']
             },
             :subject => 'Cookies and Cream - Magic Link',
-            :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({:name => user.name, :magic_link => magic_link}),
+            :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({
+                :name => user.format_name(user_data['name']),
+                :magic_link => magic_link
+            }),
             :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
           })
         erb :'authentication/email_sent'
@@ -95,7 +105,6 @@ class CookiesCreamApp < Sinatra::Base
     email = Email.new
     decoded_token = email.verify_token(params[:token])
     if decoded_token
-       #save to database and create a session
        redirect :'profile-image'
     else
       'Invalid or expired token'
@@ -106,6 +115,19 @@ class CookiesCreamApp < Sinatra::Base
   get '/profile-image' do
     erb :'registration/profile_image'
   end
+
+  post '/profile-image' do
+    temp = params[:image][:tempfile]
+    @profile_image = params[:image][:filename]
+    filepath = "/public/images/profiles/user/#{@profile_image}"
+    File.open(filepath, 'wb') do |f|
+      f.write(temp.read)
+    end
+    account = Account.new
+    account.cache_account(redis,session.id, {image: filepath})
+    erb :'registration/dessert_preference'
+  end
+
 
   get '/dessert/favs' do
     erb :'registration/dessert_preference'

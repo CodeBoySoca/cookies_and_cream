@@ -14,6 +14,10 @@ class User < ActiveRecord::Base
     end
   end
 
+  def format_name(name)
+     name.capitalize.split[0]
+  end
+
   def check_for_user_session()
      #run this before any of the methods for request
      #user to be logged in
