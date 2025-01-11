@@ -23,7 +23,7 @@ class CookiesCreamApp < Sinatra::Base
 
   helpers do
     def csrf_tag
-      "<input type='hidden' name='authenticity_token' value='#{env['rack.session'][:csrf]}'>"
+      "<input type='hidden' id='csrf_token' name='authenticity_token' value='#{env['rack.session'][:csrf]}'>"
     end
   end
 
@@ -111,7 +111,6 @@ class CookiesCreamApp < Sinatra::Base
     end
   end
 
-
   get '/profile-image' do
     erb :'registration/profile_image'
   end
@@ -119,17 +118,22 @@ class CookiesCreamApp < Sinatra::Base
   post '/profile-image' do
     temp = params[:image][:tempfile]
     @profile_image = params[:image][:filename]
-    filepath = "/public/images/profiles/user/#{@profile_image}"
-    File.open(filepath, 'wb') do |f|
-      f.write(temp.read)
-    end
+    filepath = "./public/images/profiles/users/#{@profile_image}"
+    File.open(filepath, 'wb') { |f| f.write(temp.read)}
     account = Account.new
-    account.cache_account(redis,session.id, {image: filepath})
+    account.cache_account(redis, session.id, {image: filepath})
+    redirect :'dessert/favs'
+  end
+
+  get '/dessert/favs' do
     erb :'registration/dessert_preference'
   end
 
-
-  get '/dessert/favs' do
+  post '/dessert/favs' do
+    @dessert_choice = JSON.parse(request.body.read)
+    account = Account.new
+    account.cache_account(redis, session.id, @dessert_choice)
+    erb :'registration/dessert_preference'
     erb :'registration/dessert_preference'
   end
 
