@@ -43,10 +43,16 @@ class User < ActiveRecord::Base
     (/\A[a-z0-9_-]+\z/i).match?(username)
   end
 
-  def self.validate_image_upload(image, message)
-    unless ['image/jpeg', 'image/gif', 'image/png'].include?(image)
-      message
+  def self.validate_image_upload(image)
+    unless ['image/jpeg','image/jpg','image/gif','image/png'].include?(image)
+      return false
     end
   end
 
+  def self.check_image_size(image, image_path)
+    #only allow uploads up to 1MB
+     if image.size < 1024**2
+       return true
+     end
+  end
 end

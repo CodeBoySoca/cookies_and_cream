@@ -146,12 +146,12 @@ class CookiesCreamApp < Sinatra::Base
     temp = params[:image][:tempfile]
     @profile_image = params[:image][:filename]
     filepath = "./public/images/profiles/users/#{@profile_image}"
-    puts params[:image][:type]
-    file_type = User.validate_image_upload(
-      params[:image][:type],
-      {:toast => toast('Image format is invalid(the image must be JPEG,PNG or GIF format)')}
-    )
-    if file_type.respond_to?(:has_key?)
+    image_size = User.check_image_size(temp, @profile_image) || {:toast => toast('Image exceeds 1MB')}
+    file_type = User.validate_image_upload(params[:image][:type]) ||
+    {:toast => toast('Image format is invalid(the image must be JPEG,PNG or GIF format)')}
+    if image_size.respond_to?(:has_key?)
+      erb :'registration/profile_image', locals: image_size
+    elsif file_type.respond_to?(:has_key?)
       erb :'registration/profile_image', locals: file_type
     else
       File.open(filepath, 'wb') { |f| f.write(temp.read)}
