@@ -14,7 +14,7 @@ class User < ActiveRecord::Base
     end
   end
 
-  def format_name(name)
+  def self.format_name(name)
      name.capitalize.split[0]
   end
 
@@ -33,6 +33,20 @@ class User < ActiveRecord::Base
   end
 
   def signout()
+  end
+
+  def self.validate_name(name)
+     (/\A[a-z\s]+\z/i).match?(name)
+  end
+
+  def self.validate_username(username)
+    (/\A[a-z0-9_-]+\z/i).match?(username)
+  end
+
+  def self.validate_image_upload(image, message)
+    unless ['image/jpeg', 'image/gif', 'image/png'].include?(image)
+      message
+    end
   end
 
 end

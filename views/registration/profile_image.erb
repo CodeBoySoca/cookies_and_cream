@@ -7,5 +7,10 @@
        <div id="profile-image-upload"><input type="file" name="image"></div>
        <input type="submit" value="Next">
      </form>
+     <% if locals[:toast] %>
+       <div id="toast">
+         <%= toast %>
+       </div>
+     <% end %>
  </div>
 </main>

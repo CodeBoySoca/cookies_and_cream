@@ -34,6 +34,18 @@ class CookiesCreamApp < Sinatra::Base
     end
   end
 
+  helpers do
+    def server_email_credentials()
+      {
+        :address =>  ENV['EMAIL_SERVER'],
+        :port =>  ENV['EMAIL_PORT'],
+        :enable_starttls_auto =>  true,
+        :user_name =>  ENV['EMAIL_SENDER'],
+        :password =>  ENV['EMAIL_PASSWORD']
+      }
+    end
+  end
+
   #global
   get '/' do
     #a landing page?
@@ -59,47 +71,61 @@ class CookiesCreamApp < Sinatra::Base
     erb :'registration/signup'
   end
 
-  post '/email/magic-link' do
-    #add the username and name to redis
-    session[:username] = params[:username]
-    account = Account.new
-    account.cache_account(redis, session.id, {:name => params[:name], :username => params[:username]})
+  post '/signup' do
+    @name = User.validate_name(params[:name])
+    @username = User.validate_username(params[:username])
+    if @name && @username
+        #add the username and name to redis
+        session[:username] = params[:username]
+        account = Account.new
+        account.cache_account(redis, session.id, {name: params[:name], username: params[:username]})
+       redirect :'email/magic-link'
+    else
+       erb :'registration/signup', locals: {:toast => toast('Username or name has invalid characters')}
+    end
+  end
+
+  get '/email/magic-link' do
     erb :'authentication/signin'
   end
 
-  post '/send/magic-link' do
+  post '/email/magic-link' do
+    email = Email.validate_email(params[:email])
+    if email
+       user = User.new
+       account = Account.new
+       account_status = user.check_for_existence(params[:email])
+       if account_status != 404
+          erb :'authentication/signin', locals: {:toast => toast('User already has an account')}
+       else
+          account.cache_account(redis, session.id, {email: params[:email]})
+          redirect '/send/magic-link'
+       end
+    end
+    erb :'authentication/signin', locals: {:toast => toast('E-mail is invalid')}
+  end
+
+  get '/send/magic-link' do
     #page to display to the user to tell them to check their e-mail
     #send email with magic link
-    user = User.new
-    account_status = user.check_for_existence(params[:email])
     account = Account.new
     user_data = account.get_cached_data(redis, session.id)
-    if account_status == 404
-        email = Email.new
-        token = email.generate_token(params[:email])
-        magic_link = "http://localhost:4567/verify/account/?token=#{token}"
-        email.send_magic_link({
-            :to =>  ENV['EMAIL_RECIPIENT'],
-            :via => :smtp,
-            :via_options => {
-              :address =>  ENV['EMAIL_SERVER'],
-              :port =>  ENV['EMAIL_PORT'],
-              :enable_starttls_auto =>  true,
-              :user_name =>  ENV['EMAIL_SENDER'],
-              :password =>  ENV['EMAIL_PASSWORD']
-            },
-            :subject => 'Cookies and Cream - Magic Link',
-            :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({
-                :name => user.format_name(user_data['name']),
-                :magic_link => magic_link
-            }),
-            :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
-          })
-        erb :'authentication/email_sent'
-     else
-       erb :'authentication/signin', locals: {:toast => toast('User already has an account')}
-     end
-    end
+    email = Email.new
+    token = email.generate_token(params[:email])
+    magic_link = "http://localhost:4567/verify/account/?token=#{token}"
+    email.send_magic_link({
+        :to =>  ENV['EMAIL_RECIPIENT'],
+        :via => :smtp,
+        :via_options => server_email_credentials(),
+        :subject => 'Cookies and Cream - Magic Link',
+        :html_body => ERB.new(File.read('views/authentication/magic_link.erb')).result_with_hash({
+            :name => User.format_name(user_data['name']),
+            :magic_link => magic_link
+        }),
+        :body => 'Hello #{data["name"]} click the link to sign in <a href="#{data["magic_link"]}">Sign in</a>'
+      })
+    erb :'authentication/email_sent'
+  end
 
   get '/verify/account/' do
     #verify the users token
@@ -120,10 +146,19 @@ class CookiesCreamApp < Sinatra::Base
     temp = params[:image][:tempfile]
     @profile_image = params[:image][:filename]
     filepath = "./public/images/profiles/users/#{@profile_image}"
-    File.open(filepath, 'wb') { |f| f.write(temp.read)}
-    account = Account.new
-    account.cache_account(redis, session.id, {image: filepath})
-    redirect :'dessert/fav'
+    puts params[:image][:type]
+    file_type = User.validate_image_upload(
+      params[:image][:type],
+      {:toast => toast('Image format is invalid(the image must be JPEG,PNG or GIF format)')}
+    )
+    if file_type.respond_to?(:has_key?)
+      erb :'registration/profile_image', locals: file_type
+    else
+      File.open(filepath, 'wb') { |f| f.write(temp.read)}
+      account = Account.new
+      account.cache_account(redis, session.id, {image: filepath})
+      redirect :'dessert/fav'
+    end
   end
 
   get '/dessert/fav' do

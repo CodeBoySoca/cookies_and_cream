@@ -1,6 +1,7 @@
 require 'jwt'
 require 'time'
 
+
 class Email
   SECRET_KEY = Base64.urlsafe_encode64(SecureRandom.random_bytes(32))
 
@@ -23,6 +24,10 @@ class Email
     rescue JWT::DecodeError
       nil
     end
+  end
+
+  def self.validate_email(email)
+    (/\A[\w+\-.]+@[a-z\d\-]+\.[a-z]+\z/i).match?(email)
   end
 
 end
