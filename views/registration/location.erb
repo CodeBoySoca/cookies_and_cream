@@ -3,10 +3,11 @@
  <div>
     <form method="POST">
      <h2>Add your location</h2>
-    <% if request.path_info ==  '/location' %> <p>This will help us find shops near to you</p><% end %>
-     <input type="text" name="city" placeholder="City" pattern="[A-Za-z]" required>
+     <% if request.path_info ==  '/location' %> <p>This will help us find shops near to you</p><% end %>
+     <%= csrf_tag %>
+     <input type="text" name="city" placeholder="City" pattern="[A-Za-z\s]+" required>
      <br>
-     <select name="countries">
+     <select name="country">
          <option value="Afghanistan">Afghanistan</option>
          <option value="Åland Islands">Åland Islands</option>
          <option value="Albania">Albania</option>
@@ -254,7 +255,7 @@
      </select>
      <br>
      <select name="state">
-         <option value="" selected="selected">Select a State</option>
+         <option value="n/a" selected="selected">Select a State</option>
          <option value="AL">Alabama</option>
          <option value="AK">Alaska</option>
          <option value="AZ">Arizona</option>

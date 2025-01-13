@@ -6,6 +6,7 @@ require 'erb'
 require 'rack/protection'
 require 'securerandom'
 require 'redis'
+require 'json'
 
 
 Dotenv.load
@@ -122,19 +123,18 @@ class CookiesCreamApp < Sinatra::Base
     File.open(filepath, 'wb') { |f| f.write(temp.read)}
     account = Account.new
     account.cache_account(redis, session.id, {image: filepath})
-    redirect :'dessert/favs'
+    redirect :'dessert/fav'
   end
 
-  get '/dessert/favs' do
+  get '/dessert/fav' do
     erb :'registration/dessert_preference'
   end
 
-  post '/dessert/favs' do
-    @dessert_choice = JSON.parse(request.body.read)
+  post '/dessert/fav' do
+    @dessert_choice = request.body.read
     account = Account.new
-    account.cache_account(redis, session.id, @dessert_choice)
-    erb :'registration/dessert_preference'
-    erb :'registration/dessert_preference'
+    account.cache_account(redis, session.id, {dessert: @dessert_choice})
+    erb :'registration/location'
   end
 
   get '/location' do
@@ -143,6 +143,16 @@ class CookiesCreamApp < Sinatra::Base
 
   post '/location' do
      #redirect to shops after adding everything to db
+     @city = params[:city]
+     @country = params[:country]
+     @state = params[:state]
+    if @city == nil || @city == '' || @country == nil || @country == '' || @state == nil || @state == ''
+      erb :'registration/location'
+    else
+      account = Account.new
+      account.cache_account(redis, session.id, {city: @city, state: @state, country: @country})
+      redirect :shops
+    end
   end
 
   get '/shops' do
